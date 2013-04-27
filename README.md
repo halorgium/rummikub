@@ -1,10 +1,10 @@
-reeltalk
+rummikub
 ========
-[![Build Status](https://secure.travis-ci.org/tarcieri/reeltalk.png?branch=master)](http://travis-ci.org/tarcieri/reeltalk)
+[![Build Status](https://secure.travis-ci.org/halorgium/rummikub.png?branch=master)](http://travis-ci.org/halorgium/rummikub)
 
-An underdocumented web chat system
+An underdocumented game
 
-Contributing to reeltalk
+Contributing to rummikub
 ------------------------
 
 * Fork this repository on github
@@ -15,5 +15,7 @@ Contributing to reeltalk
 License
 -------
 
-Copyright (c) 2012 Tony Arcieri. Distributed under the MIT License. See
+Copyright (c) 2013 Tim Carey-Smith. Distributed under the MIT License. See
 LICENSE.txt for further details.
+
+Forked from [Reeltalk](https://github.com/tarcieri/reeltalk)

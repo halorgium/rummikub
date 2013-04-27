@@ -1,4 +1,4 @@
-module Reeltalk
+module Rummikub
   PUBLIC_ROOT  = Pathname.new File.expand_path("../../../public", __FILE__)
   PUBLIC_FILES = Dir[PUBLIC_ROOT.join("**", "*")].map { |f| f.sub(/^#{PUBLIC_ROOT}\//, '') }
   
@@ -6,7 +6,7 @@ module Reeltalk
     include Celluloid::Logger
 
     def initialize(host = "127.0.0.1", port = 1234)
-      info "Reeltalk starting on http://#{host}:#{port}"
+      info "Rummikub starting on http://#{host}:#{port}"
       super(host, port, &method(:on_connection))
     end
 

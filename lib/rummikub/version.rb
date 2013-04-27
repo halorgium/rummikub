@@ -1,3 +1,3 @@
-module Reeltalk
+module Rummikub
   VERSION = "0.0.0"
 end

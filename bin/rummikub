@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'rummikub'
+
+Rummikub::Server.supervise_as :rummikub
+sleep

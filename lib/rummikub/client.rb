@@ -1,6 +1,6 @@
 require 'json'
 
-module Reeltalk
+module Rummikub
   class Client
     include Celluloid::IO
     include Celluloid::Logger
