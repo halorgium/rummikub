@@ -35,7 +35,7 @@ module Rummikub
     end
 
     def route_websocket(socket)
-      if socket.url == "/chat"
+      if socket.url == "/clients"
         Client.new(current_actor, socket)
       else
         info "Invalid WebSocket request for: #{socket.url}"
