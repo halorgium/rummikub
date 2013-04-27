@@ -12,5 +12,9 @@ module Rummikub
     def take_turn
       Pickup.new
     end
+
+    def refresh(perspective)
+      info "new perspective: #{perspective.inspect}"
+    end
   end
 end

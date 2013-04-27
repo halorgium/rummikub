@@ -45,6 +45,8 @@ module Rummikub
 
       iterator = Reiterator.new(@players.sort_by { rand })
       while player = iterator.next
+        broadcast
+
         info "asking #{player.inspect} to take their turn"
         turn = player.take_turn
         case turn
@@ -54,6 +56,28 @@ module Rummikub
         else
           raise "do not know how to complete turn: #{turn.inspect}"
         end
+      end
+    end
+
+    class Perspective
+      def initialize(rack, opponents)
+        @rack = rack
+        @opponents = opponents
+      end
+      attr_reader :rack, :opponents
+    end
+
+    def broadcast
+      @players.each do |player|
+        opponents = {}
+        @players.each do |opponent|
+          next if opponent == player
+          opponents[opponent.name] = {
+            rack: tiles_in(opponent).size,
+          }
+        end
+        perspective = Perspective.new(tiles_in(player).map(&:name), opponents)
+        player.refresh(perspective)
       end
     end
 

@@ -2,26 +2,41 @@ require 'json'
 
 module Rummikub
   class Client
+    class TurnDecoder
+      def initialize(message)
+        @message = message
+      end
+
+      def turn
+        case @message['type']
+        when 'Pickup'
+          Pickup.new
+        else
+          raise "unknown turn type: #{@message.inspect}"
+        end
+      end
+    end
+
     include Celluloid::IO
     include Celluloid::Logger
-    include Celluloid::Notifications
 
     attr_reader :socket
 
-    def initialize(socket)
+    def initialize(server, socket)
+      @server = server
       @socket = socket
-      @nickname = nil
+      @name = nil
 
-      subscribe 'chat', :handle_chat
       async.run
     end
 
     def run
+      info "now running #{inspect}"
       while message = JSON.parse(@socket.read)
         dispatch message
       end
     rescue EOFError
-      event "left"
+      @server.async.leave(current_actor)
       terminate
     end
 
@@ -30,26 +45,36 @@ module Rummikub
 
       case message['action']
       when 'join'
-        @nickname = message['user']
-        event 'joined'
-      when 'message'
-        publish 'chat', message.merge('user' => nickname)
+        @name = message['user']
+        @server.async.joined(current_actor)
+      when 'turn'
+        decoder = TurnDecoder.new(message)
+        signal :turn, decoder.turn
       else
         warn "unknown command '#{action}'"
       end
     end
 
-    def handle_chat(_, message)
+    def take_turn
+      deliver action: "take_turn"
+      wait :turn
+    end
+
+    def refresh(perspective)
+      info "new perspective: #{perspective.inspect}"
+      deliver action: 'refresh', rack: perspective.rack, opponents: perspective.opponents
+    end
+
+    def deliver(message)
       @socket << JSON.generate(message)
     end
 
-    def nickname
-      @nickname || "unregistered user"
+    def name
+      @name || "unregistered user"
     end
 
-    def event(message)
-      info "#{nickname} #{message}"
-      publish 'chat', {'action' => 'control', 'user' => nickname, 'message' => message}
+    def inspect
+      "#<#{self.class}:0x#{object_id.to_s(16)} @name=#{@name.inspect}>"
     end
   end
 end

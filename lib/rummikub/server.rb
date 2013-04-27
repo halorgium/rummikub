@@ -7,6 +7,7 @@ module Rummikub
 
     def initialize(host = "127.0.0.1", port = 1234)
       info "Rummikub starting on http://#{host}:#{port}"
+      @clients = []
       super(host, port, &method(:on_connection))
     end
 
@@ -35,16 +36,29 @@ module Rummikub
 
     def route_websocket(socket)
       if socket.url == "/chat"
-        Client.new(socket)
+        Client.new(current_actor, socket)
       else
         info "Invalid WebSocket request for: #{socket.url}"
         socket.close
       end
     end
 
+    def joined(client)
+      @clients << client
+      if @clients.size == 2
+        players = @clients
+        @clients = []
+        Game.new(players)
+      end
+    end
+
     def render_asset(connection, path)
       info "200 OK: #{path}"
       connection.respond :ok, File.read(PUBLIC_ROOT.join(path.sub(/^\/+/, '')))
+    end
+
+    def inspect
+      "#<#{self.class}:0x#{object_id.to_s(16)}>"
     end
   end
 end
