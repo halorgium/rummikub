@@ -1,0 +1,23 @@
+   s: Start server
+   s: Client 1 connects
+   s: Client 2 connects
+
+  Initialization
+
+   s: Game is created
+   g: Bag is created
+   b: Tiles are created
+   g: Player 1 is created
+  p1: Tiles taken from bag
+   g: Player 2 is created
+  p2: Tiles taken from bag
+
+  p1t1
+
+  p1: Create pickup
+  r1: Pick up tile from bag
+
+  p2t1
+
+  p2: Create move
+   g: Create set of 3

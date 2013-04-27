@@ -6,3 +6,5 @@ gem 'reel', github: 'celluloid/reel', branch: 'master'
 
 # Specify your gem's dependencies in rummikub.gemspec
 gemspec
+
+gem 'pry'
