@@ -47,11 +47,10 @@ module Rummikub
       when 'join'
         @name = message['user']
         @server.async.joined(current_actor)
-      when 'turn'
-        decoder = TurnDecoder.new(message)
-        signal :turn, decoder.turn
+      when 'pickup'
+        signal :turn, Pickup.new
       else
-        warn "unknown command '#{action}'"
+        warn "unable to dispatch: #{message.inspect}"
       end
     end
 
@@ -62,7 +61,13 @@ module Rummikub
 
     def refresh(perspective)
       info "new perspective: #{perspective.inspect}"
-      deliver action: 'refresh', rack: perspective.rack, opponents: perspective.opponents
+      rack = perspective.rack.map do |t|
+        {number: t.number, color: t.color}
+      end
+      opponents = perspective.opponents.map do |o|
+        {name: o.name, tile_count: o.tile_count}
+      end
+      deliver action: 'refresh', rack: rack, opponents: opponents
     end
 
     def deliver(message)

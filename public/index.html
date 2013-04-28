@@ -32,21 +32,25 @@
       <div id="ask" class="bordered" style="display: none;">
         Name: <input type="text" id="name" /> <a href="#"><span class="btn join">Play</span></a>
       </div>
-      <div id="channel" class="bordered" style="display: none;">
-        <div id="msgs">
-          <ul>
-            <li class="message" style="display: none">
-              <span class="user"></span><span class="message"></span>
-              <span class="time"></span>
-            </li>
-            <li class="control" style="display: none">
-              <span class="user"></span>&nbsp;<span class="message"></span>
-              <span class="time"></span>
-            </li>
-          </ul>
+      <div id="templates" style="display: none">
+        <ul>
+          <li class="tile"></li>
+        </ul>
+        <ul class="set"></ul>
+      </div>
+      <div id="game" class="bordered" style="display: none;">
+        <h2>Your rack: </h2>
+        <div id="rack">
+          <ul class="set"></ul>
         </div>
-        <div id="input">
-          <form><input type="text" id="message" /></form>
+        <div id="turn" style="display: none">
+          <h2>It's your turn!</h2>
+          <div class="btn-group">
+            <button id="pickup" class="btn">Pickup a tile</button>
+          </div>
+        </div>
+        <h2>The table: </h2>
+        <div id="table">
         </div>
       </div>
     </div>

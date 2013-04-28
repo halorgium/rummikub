@@ -24,7 +24,7 @@ module Rummikub
       %w( red yellow green blue ).each do |color|
         (1..13).each do |number|
           2.times do |edition|
-            Tile.new(color, number, edition).tap do |tile|
+            Tile.new(number, color, edition).tap do |tile|
               @tiles << tile
               tile.move_to(@bag)
             end
@@ -59,24 +59,18 @@ module Rummikub
       end
     end
 
-    class Perspective
-      def initialize(rack, opponents)
-        @rack = rack
-        @opponents = opponents
-      end
-      attr_reader :rack, :opponents
-    end
-
     def broadcast
       @players.each do |player|
-        opponents = {}
+        opponents = []
         @players.each do |opponent|
           next if opponent == player
-          opponents[opponent.name] = {
-            rack: tiles_in(opponent).size,
-          }
+          opponents << OpponentPerspective.new(opponent.name, tiles_in(opponent).size)
         end
-        perspective = Perspective.new(tiles_in(player).map(&:name), opponents)
+        tiles = []
+        tiles_in(player).each do |tile|
+          tiles << TilePerspective.new(tile.number, tile.color)
+        end
+        perspective = GamePerspective.new(tiles, opponents)
         player.refresh(perspective)
       end
     end

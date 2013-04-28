@@ -45,7 +45,7 @@ module Rummikub
 
     def joined(client)
       @clients << client
-      if @clients.size == 2
+      if @clients.size == 1
         players = @clients
         @clients = []
         Game.new(players)

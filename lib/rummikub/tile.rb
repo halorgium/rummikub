@@ -11,6 +11,7 @@ module Rummikub
 
       info "created #{name.inspect}"
     end
+    attr_reader :number, :color
 
     def move_to(location)
       info "moving #{name} to #{location.inspect}"
