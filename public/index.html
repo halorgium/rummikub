@@ -36,21 +36,24 @@
         <ul>
           <li class="tile"></li>
         </ul>
-        <ul class="set"></ul>
+        <ul class="set well"></ul>
       </div>
       <div id="game" class="bordered" style="display: none;">
         <h2>Your rack: </h2>
         <div id="rack">
-          <ul class="set"></ul>
+          <ul class="set well"></ul>
         </div>
         <div id="turn" style="display: none">
           <h2>It's your turn!</h2>
           <div class="btn-group">
             <button id="pickup" class="btn">Pickup a tile</button>
+            <button id="finished" class="btn">I'm done</button>
           </div>
         </div>
         <h2>The table: </h2>
         <div id="table">
+          <div id="add-set" class="well">Drop a tile here to start a new group or run</div>
+          <div id="sets"></div>
         </div>
       </div>
     </div>

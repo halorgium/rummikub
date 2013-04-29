@@ -5,9 +5,21 @@ module Rummikub
   class Server < Reel::Server
     include Celluloid::Logger
 
+    class ClientFacet
+      def initialize(server, client)
+        @server = server
+        @client = client
+      end
+
+      def joined
+        @server.find_game(@client)
+      end
+    end
+
     def initialize(host = "127.0.0.1", port = 1234)
       info "Rummikub starting on http://#{host}:#{port}"
-      @clients = []
+      @clients = {}
+      @waiting = []
       super(host, port, &method(:on_connection))
     end
 
@@ -36,19 +48,25 @@ module Rummikub
 
     def route_websocket(socket)
       if socket.url == "/clients"
-        Client.new(current_actor, socket)
+        uuid = Celluloid.uuid
+        proxy = Celluloid::MultiplexProxy.new(current_actor, uuid, :invoke)
+        client = Client.new(proxy, socket)
+        @clients[uuid] = ClientFacet.new(self, client)
       else
         info "Invalid WebSocket request for: #{socket.url}"
         socket.close
       end
     end
 
-    def joined(client)
-      @clients << client
-      if @clients.size == 1
-        players = @clients
-        @clients = []
-        Game.new(players)
+    def invoke(uuid, meth, *args, &block)
+      @clients.fetch(uuid).__send__(meth, *args, &block)
+    end
+
+    def find_game(client)
+      @waiting << client
+      if @waiting.size == 2
+        Game.new(@waiting)
+        @waiting = []
       end
     end
 

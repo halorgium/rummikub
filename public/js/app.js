@@ -18,13 +18,36 @@ $(document).ready(function(){
     $('#ask').hide();
     $('#game').show();
     $('input#message').focus();
-  }).trigger('click');
+  });
+
+  function finishTurn() {
+    $('#turn').hide();
+  }
 
   function join(name) {
     var host = window.location.host.split(':')[0];
 
     var SocketKlass = "MozWebSocket" in window ? MozWebSocket : WebSocket;
     var ws = new SocketKlass('ws://' + window.location.host + '/clients');
+
+    function addTiles(set, tiles) {
+      set.children().remove();
+      $.each(tiles, function (index, value) {
+        var tile = templates.find('.tile').clone();
+        tile.appendTo(set);
+        tile.text(value.number);
+        tile.addClass(value.color);
+        tile.data(value);
+        tile.data('set', set.data('index'));
+      });
+      set.sortable();
+      set.droppable({
+        drop: function(event, ui) {
+          var tile = $(event.toElement).data();
+          call('move-tile', {source: tile.set, destination: set.data('index'), tile: {number: tile.number, color: tile.color}});
+        }
+      });
+    }
 
     var templates = $('div#templates');
     ws.onmessage = function(evt) {
@@ -36,15 +59,14 @@ $(document).ready(function(){
 
       switch (action) {
         case 'refresh':
-          $('div#rack .set').children().remove();
-          $.each(obj.rack, function (index, value) {
-            var tile = templates.find('.tile').clone();
-            tile.appendTo('div#rack .set');
-            tile.text(value.number);
-            tile.addClass(value.color);
-          })
-          $('#rack .set').sortable();
-          //$('#rack .set .tile').draggable({connectWith: "#rack .set"});
+          addTiles($('#rack .set'), obj.rack);
+          $('div#sets').children().remove();
+          $.each(obj.sets, function (index, value) {
+            var set = templates.find('.set').clone();
+            set.appendTo('div#sets');
+            set.data('index', value.index);
+            addTiles(set, value.tiles);
+          });
           break;
         case 'take_turn':
           $('div#turn').show();
@@ -55,44 +77,30 @@ $(document).ready(function(){
       }
     };
 
-    /*
-      var struct = container.find('li.' + action + ':first');
-      if (struct.length < 1) {
-        console.log("Could not handle: " + evt.data);
-        return;
-      }
-
-      var msg = struct.clone();
-      msg.find('.time').text((new Date()).toString("HH:mm:ss"));
-
-      if (action == 'message') {
-        var matches;
-        if (matches = obj['message'].match(/^\s*[\/\\]me\s(.*)/)) {
-          msg.find('.user').text(obj['user'] + ' ' + matches[1]);
-          msg.find('.user').css('font-weight', 'bold');
-        } else {
-          msg.find('.user').text(obj['user']);
-          msg.find('.message').text(': ' + obj['message']);
-        }
-      } else if (action == 'control') {
-        msg.find('.user').text(obj['user']);
-        msg.find('.message').text(obj['message']);
-        msg.addClass('control');
-      }
-
-      if (obj['user'] == name) msg.find('.user').addClass('self');
-      container.find('ul').append(msg.show());
-      container.scrollTop(container.find('ul').innerHeight());
-      */
-
     $('#pickup').click(function(event) {
-      ws.send($.toJSON({ action: 'pickup' }));
-      input.val('');
+      call('pickup');
+      finishTurn();
     });
-    
+
+    $('#finished').click(function(event) {
+      call('finished');
+      finishTurn();
+    });
+
+    $('#add-set').droppable({
+      drop: function(event, ui) {
+        var tile = $(event.toElement).data();
+        call('add-set', {source: tile.set, tile: {number: tile.number, color: tile.color}});
+      }
+    });
+
     // send name when joining
     ws.onopen = function() {
-      ws.send($.toJSON({ action: 'join', user: name }));
+      call('join', {user: name})
     }
+
+    var call = function(action, body) {
+      ws.send($.toJSON({action: action, body: body}));
+    };
   }
 });

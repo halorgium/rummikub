@@ -2,21 +2,6 @@ require 'json'
 
 module Rummikub
   class Client
-    class TurnDecoder
-      def initialize(message)
-        @message = message
-      end
-
-      def turn
-        case @message['type']
-        when 'Pickup'
-          Pickup.new
-        else
-          raise "unknown turn type: #{@message.inspect}"
-        end
-      end
-    end
-
     include Celluloid::IO
     include Celluloid::Logger
 
@@ -33,25 +18,48 @@ module Rummikub
     def run
       info "now running #{inspect}"
       while message = JSON.parse(@socket.read)
-        dispatch message
+        action = message.fetch('action')
+        body = message.fetch('body', nil)
+        dispatch action, body
       end
     rescue EOFError
-      @server.async.leave(current_actor)
+      @server.leave
       terminate
     end
 
-    def dispatch(message)
-      debug "Dispatching #{message.inspect}"
+    def dispatch(action, body)
+      debug "Dispatching #{action.inspect} with #{body.inspect}"
 
-      case message['action']
+      case action
       when 'join'
-        @name = message['user']
-        @server.async.joined(current_actor)
+        @name = body['user']
+        @server.joined
       when 'pickup'
         signal :turn, Pickup.new
+      when 'finished'
+        signal :turn, Finished.new
+      when 'add-set'
+        add_set(body.fetch('source', nil), body.fetch('tile'))
+      when 'move-tile'
+        move_tile(body.fetch('source', nil), body.fetch('destination', nil), body.fetch('tile'))
       else
-        warn "unable to dispatch: #{message.inspect}"
+        warn "unable to dispatch: #{action.inspect}"
       end
+    end
+
+    def start(game)
+      @game = game
+    end
+
+    def add_set(source, tile)
+      destination = @game.add_set
+      move_tile(source, destination, tile)
+    end
+
+    def move_tile(source, destination, tile)
+      source = source ? @game.find_set(source) : current_actor
+      destination = destination ? @game.find_set(destination) : current_actor
+      @game.move_tile(tile.fetch("number"), tile.fetch("color"), source, destination)
     end
 
     def take_turn
@@ -64,10 +72,16 @@ module Rummikub
       rack = perspective.rack.map do |t|
         {number: t.number, color: t.color}
       end
+      sets = perspective.sets.map do |(index,tiles)|
+        tiles = tiles.map do |t|
+          {number: t.number, color: t.color}
+        end
+        {index: index, tiles: tiles}
+      end
       opponents = perspective.opponents.map do |o|
         {name: o.name, tile_count: o.tile_count}
       end
-      deliver action: 'refresh', rack: rack, opponents: opponents
+      deliver action: 'refresh', rack: rack, sets: sets, opponents: opponents
     end
 
     def deliver(message)

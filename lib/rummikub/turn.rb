@@ -4,7 +4,7 @@ module Rummikub
     end
   end
 
-  class Move < Turn
+  class Finished < Turn
     def initialize
     end
   end
